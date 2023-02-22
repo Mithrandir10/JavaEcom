@@ -13,7 +13,16 @@ public class ProductList {
     public TableView<Product> prodTable;
 
     public Pane getAllProducts(){
-        TableColumn id=new TableColumn("pid");
+
+
+
+        ObservableList<Product> productList=Product.getAllProducts();
+
+        return createTableFromList(productList);
+    }
+
+    public Pane createTableFromList(ObservableList<Product> productList){
+        TableColumn id=new TableColumn("id");
         id.setCellValueFactory(new PropertyValueFactory<>("id"));
 
         TableColumn name=new TableColumn("name");
@@ -23,7 +32,7 @@ public class ProductList {
         price.setCellValueFactory(new PropertyValueFactory<>("price"));
 
 
-        ObservableList<Product> productList=Product.getAllProducts();
+
         prodTable=new TableView<>();
         prodTable.setItems(productList);
         prodTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -35,6 +44,9 @@ public class ProductList {
         return tablePane;
     }
 
+    public Pane productsInCart(ObservableList<Product> productList){
+        return createTableFromList(productList);
+    }
 
     public Product getSelectedProduct(){
         return prodTable.getSelectionModel().getSelectedItem();

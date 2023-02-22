@@ -1,9 +1,14 @@
 package com.example.ecommerce;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.css.converter.FontConverter;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -20,11 +25,24 @@ public class Ecommerce extends Application {
 
     private final int width=600,height=400,headerLine=50;
     ProductList pd=new ProductList();
+
+    ObservableList<Product> cartList= FXCollections.observableArrayList();
     Pane bodyPane;
     Customer loggedInCustomer;
     Button loginButton ;
     Button SignupButton;
     Label welcomeLabel=new Label("Welcome ");
+
+    Button orders=new Button("Show Orders");
+    Button placeOrder=new Button("Place Order");
+    private void addToCart(Product product){
+        if(cartList.contains(product)){
+            return;
+        }else{
+
+            cartList.add(product);
+        }
+    }
 
     private void showDialog(String s1,String s2){
         Dialog<String> dialog = new Dialog<String>();
@@ -44,6 +62,8 @@ public class Ecommerce extends Application {
     private GridPane footerBar(){
         GridPane footer=new GridPane();
         Button buyButton=new Button("Buy Now");
+        Button cartButton=new Button("Add to Cart");
+        footer.setStyle("-fx-base:white");
         buyButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -59,18 +79,55 @@ public class Ecommerce extends Application {
                 }
             }
         });
+
+        cartButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Product product=pd.getSelectedProduct();
+                addToCart(product);
+            }
+        });
+        placeOrder.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                    int orderCount=0;
+                    if(!cartList.isEmpty() && loggedInCustomer!=null){
+                        orderCount=Order.placeMultiOrder(cartList,loggedInCustomer);
+                    }
+                    if(orderCount>0){
+                        showDialog("Order Status",""+orderCount+" Orders Placed Successfully!!");
+                    }
+            }
+        });
+        orders.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Order or=new Order();
+                bodyPane.getChildren().clear();
+                bodyPane.getChildren().add(or.getOrders(loggedInCustomer));
+            }
+        });
+        footer.add(orders,3,1);
         footer.setTranslateX(20);
         footer.setTranslateY(10);
         footer.setVgap(10);
         footer.setHgap(10);
         footer.add(buyButton,0,1);
+        footer.add(cartButton,1,1);
+        footer.add(placeOrder,2,1);
         footer.setTranslateY(height + headerLine);
         return footer;
     }
     private GridPane headerBar(){
         GridPane header =new GridPane();
+        header.setStyle("-fx-base:white");
         TextField txt1=new TextField();
         Button search1=new Button("Search");
+        Button showcartButton=new Button("Cart");
+        header.setTranslateY(10);
+        header.setTranslateX(10);
+        txt1.setLayoutX(7);
+        welcomeLabel.setStyle("-fx-base:black");
         search1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -97,9 +154,17 @@ public class Ecommerce extends Application {
                 bodyPane.getChildren().add(SignupPage());
             }
         });
+        showcartButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                          bodyPane.getChildren().clear();
+                          bodyPane.getChildren().add(pd.productsInCart(cartList));
+            }
+        });
         header.add(loginButton,3,0);
         header.add(welcomeLabel,6,0);
         header.add(SignupButton,4,0);
+        header.add(showcartButton,9,0);
         header.setHgap(10);
         header.add(txt1,0,0);
         header.add(search1,1,0);
@@ -207,6 +272,7 @@ public class Ecommerce extends Application {
     public void start(Stage stage) throws IOException {
        // FXMLLoader fxmlLoader = new FXMLLoader(Ecommerce.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(createContent());
+        scene.getRoot().setStyle("-fx-base:black");
         stage.setTitle("Ecommerce");
         stage.setScene(scene);
         stage.show();
